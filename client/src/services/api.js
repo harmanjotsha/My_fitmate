@@ -1,0 +1,96 @@
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+
+async function request(path, options = {}) {
+  const token = localStorage.getItem('fitmate_token')
+  const isFormData = options.body instanceof FormData
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
+  })
+  const body = await response.json().catch(() => ({}))
+  if (response.status === 401) {
+    localStorage.removeItem('fitmate_token')
+    window.dispatchEvent(new Event('fitmate:auth-expired'))
+  }
+  if (!response.ok) throw new Error(body.message || 'Request failed')
+  return body
+}
+
+export const api = {
+  register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
+  login: (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  profile: () => request('/users/profile'),
+  dashboardSummary: () => request('/dashboard/summary'),
+  updateProfile: (payload) => request('/users/profile', { method: 'PATCH', body: JSON.stringify(payload) }),
+  exercises: (search = '') => request(`/exercises${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+  foods: () => request('/foods'),
+  meals: () => request('/meals'),
+  addMeal: (payload) => request('/meals', { method: 'POST', body: JSON.stringify(payload) }),
+  logMealText: (text) => request('/meals/log-text', { method: 'POST', body: JSON.stringify({ text }) }),
+  logMealImage: (file, imageData = '', description = '') => { const formData = new FormData(); if (file) formData.append('image', file); if (imageData) formData.append('imageData', imageData); if (description) formData.append('description', description); return request('/meals/log-image', { method: 'POST', body: formData }) },
+  uploadImage: (file) => { const formData = new FormData(); formData.append('image', file); return request('/uploads/images', { method: 'POST', body: formData }) },
+  workouts: () => request('/workouts'),
+  addWorkout: (payload) => request('/workouts', { method: 'POST', body: JSON.stringify(payload) }),
+  completeWorkout: (id, completed) => request(`/workouts/${id}`, { method: 'PATCH', body: JSON.stringify({ completed }) }),
+  progress: () => request('/progress'),
+  progressSummary: (range = 7) => request(`/progress/summary?range=${range}`),
+    journey: (weeks = 4) => request(`/progress/journey?weeks=${weeks}`),
+  addProgress: (payload) => request('/progress', { method: 'POST', body: JSON.stringify(payload) }),
+  hydration: () => request('/hydration'),
+  addHydration: (payload) => request('/hydration', { method: 'POST', body: JSON.stringify(payload) }),
+  updateHydration: (id, payload) => request(`/hydration/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  sleep: () => request('/sleep'),
+  addSleep: (payload) => request('/sleep', { method: 'POST', body: JSON.stringify(payload) }),
+  wellnessCheckIns: () => request('/wellness/check-ins'),
+  addWellnessCheckIn: (payload) => request('/wellness/check-ins', { method: 'POST', body: JSON.stringify(payload) }),
+  challenges: () => request('/challenges'),
+  joinChallenge: (id) => request(`/challenges/${id}/join`, { method: 'POST' }),
+  achievements: () => request('/achievements'),
+  gamification: () => request('/gamification'),
+  notifications: () => request('/notifications'),
+  markNotificationRead: (id) => request(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () => request('/notifications/read-all', { method: 'POST' }),
+  services: () => request('/services'),
+  addService: (payload) => request('/services', { method: 'POST', body: JSON.stringify(payload) }),
+  mealSuggestion: (payload = {}) => request('/ai/meal-suggestion', { method: 'POST', body: JSON.stringify(payload) }),
+  foodAnalyze: (payload = {}) => request('/ai/food-analyze', { method: 'POST', body: JSON.stringify(payload) }),
+  workoutGenerator: (payload = {}) => request('/ai/workout-generator', { method: 'POST', body: JSON.stringify(payload) }),
+  mealPlan: (payload = {}) => request('/ai/meal-plan', { method: 'POST', body: JSON.stringify(payload) }),
+  chat: (message) => request('/ai/chat', { method: 'POST', body: JSON.stringify({ message }) }),
+  adminDashboard: () => request('/admin/dashboard'),
+  adminUsers: () => request('/admin/users'),
+  updateAdminUserStatus: (id, status) => request(`/admin/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  adminActivity: () => request('/admin/activity'),
+  adminAiAnalytics: () => request('/admin/ai-analytics'),
+  adminExercises: () => request('/admin/exercises'),
+  addAdminExercise: (payload) => request('/admin/exercises', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteAdminExercise: (id) => request(`/admin/exercises/${id}`, { method: 'DELETE' }),
+  adminFoods: () => request('/admin/foods'),
+  addAdminFood: (payload) => request('/admin/foods', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteAdminFood: (id) => request(`/admin/foods/${id}`, { method: 'DELETE' }),
+  adminWorkoutPlans: () => request('/admin/workout-plans'),
+  addAdminWorkoutPlan: (payload) => request('/admin/workout-plans', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteAdminWorkoutPlan: (id) => request(`/admin/workout-plans/${id}`, { method: 'DELETE' }),
+  adminChallenges: () => request('/challenges'),
+  addAdminChallenge: (payload) => request('/admin/challenges', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteAdminChallenge: (id) => request(`/admin/challenges/${id}`, { method: 'DELETE' }),
+  adminAnnouncements: () => request('/admin/announcements'),
+  addAdminAnnouncement: (payload) => request('/admin/announcements', { method: 'POST', body: JSON.stringify(payload) }),
+  adminContent: () => request('/admin/content'),
+  addAdminContent: (payload) => request('/admin/content', { method: 'POST', body: JSON.stringify(payload) }),
+  explainNote: (note, action) => request('/ai/explain-note', { method: 'POST', body: JSON.stringify({ note, action }) }),
+  gemini: (message) => request('/ai/gemini', { method: 'POST', body: JSON.stringify({ message }) }),
+  publicProject: (id = 'project-1') => request(`/public/projects/${id}`),
+  projects: () => request('/projects'),
+  createProject: (payload) => request('/projects', { method: 'POST', body: JSON.stringify(payload) }),
+  updateProject: (id, payload) => request(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  addProjectMember: (id, email) => request(`/projects/${id}/members`, { method: 'POST', body: JSON.stringify({ email }) }),
+  projectNotes: (id) => request(`/projects/${id}/notes`),
+  createProjectNote: (id, payload) => request(`/projects/${id}/notes`, { method: 'POST', body: JSON.stringify(payload) }),
+  updateProjectNote: (projectId, noteId, payload) => request(`/projects/${projectId}/notes/${noteId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteProjectNote: (projectId, noteId) => request(`/projects/${projectId}/notes/${noteId}`, { method: 'DELETE' }),
+  files: (projectId = 'project-1') => request(`/projects/${projectId}/files`),
+  uploadFile: (file, projectId = 'project-1') => { const formData = new FormData(); formData.append('file', file); return request(`/projects/${projectId}/files`, { method: 'POST', body: formData }) },
+  deleteFile: (id, projectId = 'project-1') => request(`/projects/${projectId}/files/${id}`, { method: 'DELETE' }),
+  projectAnalytics: (id) => request(`/projects/${id}/analytics`),
+}
