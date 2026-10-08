@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fitmate
+    runtime: node
+    plan: free
+    buildCommand: npm ci --prefix server && npm ci --prefix client && npm run build --prefix client
+    startCommand: npm run start:prod --prefix server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URL
+        sync: false

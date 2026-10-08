@@ -21,7 +21,6 @@ import {
   Menu,
   MessageCircle,
   Moon,
-  MoreHorizontal,
   Play,
   Plus,
   Search,
@@ -81,6 +80,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
+  const [settingsTab, setSettingsTab] = useState('profile')
   const [dashboard, setDashboard] = useState(null)
   const [showTargetEditor, setShowTargetEditor] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
@@ -150,11 +150,11 @@ function App() {
         <div className="sidebar-label resources-label">Your plan</div>
         {user.role === 'ADMIN' && <><div className="sidebar-label resources-label">Administration</div><nav className="main-nav"><button className={`nav-item ${activeNav === 'Admin' ? 'active' : ''}`} onClick={() => goTo('Admin')}><ShieldCheck size={18} /><span>Admin dashboard</span></button><button className={`nav-item ${activeNav === 'Admin Exercises' ? 'active' : ''}`} onClick={() => goTo('Admin Exercises')}><Dumbbell size={18} /><span>Exercises</span></button><button className={`nav-item ${activeNav === 'Admin Foods' ? 'active' : ''}`} onClick={() => goTo('Admin Foods')}><Utensils size={18} /><span>Foods</span></button><button className={`nav-item ${activeNav === 'Workout Plans' ? 'active' : ''}`} onClick={() => goTo('Workout Plans')}><CalendarDays size={18} /><span>Workout plans</span></button><button className={`nav-item ${activeNav === 'Announcements' ? 'active' : ''}`} onClick={() => goTo('Announcements')}><Bell size={18} /><span>Announcements</span></button><button className={`nav-item ${activeNav === 'Content' ? 'active' : ''}`} onClick={() => goTo('Content')}><FileText size={18} /><span>Content</span></button></nav></>}
         <div className="sidebar-bottom">
-          <div className="coach-card">
+          <button type="button" className="coach-card" onClick={() => goTo('AI Hub')}>
             <div className="coach-icon"><Zap size={17} /></div>
             <div><strong>Need a little push?</strong><p>Talk to your AI coach</p></div>
             <ArrowRight size={15} />
-          </div>
+          </button>
           <button className="nav-item logout" onClick={() => { localStorage.removeItem('fitmate_token'); setUser(null) }}><LogOut size={18} /><span>Log out</span></button>
         </div>
       </aside>
@@ -166,8 +166,8 @@ function App() {
           <button className="icon-button mobile-menu-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation"><Menu size={20} /></button>
           <div className="topbar-navigation"><button className="back-button" onClick={goBack} aria-label={previousNav ? 'Go back' : 'Back to landing page'}><ArrowLeft size={16} /> Back</button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{activeNav}</strong></div></div>
           <div className="topbar-actions">
-            <button className="icon-button" aria-label="Help"><CircleHelp size={19} /></button>
-            <button className="icon-button notification-button" aria-label="Notifications"><Bell size={19} /><i /></button>
+            <button className="icon-button" aria-label="Help" onClick={() => goTo('Help Desk')}><CircleHelp size={19} /></button>
+            <button className="icon-button notification-button" aria-label="Notifications" onClick={() => { setSettingsTab('notifications'); goTo('Settings') }}><Bell size={19} /><i /></button>
             <button className="user-menu" onClick={() => goTo('Settings')}>
               <div className="avatar">{user.name?.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</div>
               <div className="user-name"><strong>{user.name}</strong><span>Free plan</span></div>
@@ -209,7 +209,7 @@ function App() {
             {[{ ...quickStats[0], value: dashboard?.stats?.caloriesConsumed || 0, unit: `/ ${dashboard?.stats?.caloriesGoal || 2000} kcal` }, { ...quickStats[1], value: dashboard?.stats?.waterGlasses || 0, unit: `/ ${dashboard?.stats?.waterGoalGlasses || 8} glasses` }, { ...quickStats[2], value: dashboard?.stats?.steps || 0 }, { ...quickStats[3], value: dashboard?.stats?.activeMinutes || 0 }, { ...quickStats[4], value: dashboard?.stats?.sleepHours || 0 }].map(({ label, value, unit, change, icon: Icon, tone }) => (
               <div className="stat-card" key={label}>
                 <div className={`stat-icon ${tone}`}><Icon size={18} /></div>
-                <div className="stat-card-top"><span>{label}</span><button aria-label={`More options for ${label}`}><MoreHorizontal size={17} /></button></div>
+                <div className="stat-card-top"><span>{label}</span></div>
                 <div className="stat-value">{value} <small>{unit}</small></div>
                 <div className={`stat-change ${tone}`}><ArrowRight size={13} /> {change} <span>vs last week</span></div>
               </div>
@@ -229,7 +229,7 @@ function App() {
 
           <div className="content-grid">
             <section className="panel progress-panel">
-              <div className="panel-heading"><div><p className="section-kicker">YOUR PROGRESS</p><h3>Weekly activity</h3></div><button className="select-button">This week <ChevronDown size={15} /></button></div>
+              <div className="panel-heading"><div><p className="section-kicker">YOUR PROGRESS</p><h3>Weekly activity</h3></div><span className="select-button">This week</span></div>
               <div className="chart-wrap">
                 <div className="chart-y-labels"><span>60</span><span>40</span><span>20</span><span>0</span></div>
                 <div className="chart-area">
@@ -247,7 +247,7 @@ function App() {
             </section>
 
             <section className="panel streak-panel">
-              <div className="panel-heading"><div><p className="section-kicker">KEEP IT GOING</p><h3>Your streak</h3></div><button className="round-more" aria-label="More streak options"><MoreHorizontal size={17} /></button></div>
+              <div className="panel-heading"><div><p className="section-kicker">KEEP IT GOING</p><h3>Your streak</h3></div></div>
               <div className="streak-number"><strong>04</strong><span>days</span></div>
               <div className="week-dots">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <div className={index < 4 ? 'day done' : index === 4 ? 'day today' : 'day'} key={`${day}-${index}`}><span>{day}</span><i>{index < 4 ? '✓' : ''}</i></div>)}</div>
               <div className="streak-message"><Flame size={18} /><span><strong>You're on fire!</strong><br />Just 3 more days to beat your record.</span></div>
@@ -257,13 +257,13 @@ function App() {
           <section className="bottom-grid">
             <section className="panel workouts-panel">
               <div className="panel-heading"><div><p className="section-kicker">RECOMMENDED FOR YOU</p><h3>Next workouts</h3></div><button className="text-button" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show less' : 'See all'} <ArrowRight size={15} /></button></div>
-              <div className="workout-list">{(showAll ? [...workoutItems, ...workoutItems] : workoutItems).map((workout, index) => <article className="workout-item" key={`${workout.title}-${index}`}><div className={`workout-image ${workout.color}`}><img src={workout.image} alt="" /><button aria-label={`Start ${workout.title}`}><Play size={15} fill="currentColor" /></button></div><div className="workout-details"><span className="workout-tag">{workout.tag}</span><h4>{workout.title}</h4><p>{workout.meta}</p></div><button className="item-arrow" aria-label={`Open ${workout.title}`}><ArrowRight size={17} /></button></article>)}</div>
+              <div className="workout-list">{(showAll ? [...workoutItems, ...workoutItems] : workoutItems).map((workout, index) => <article className="workout-item" key={`${workout.title}-${index}`}><div className={`workout-image ${workout.color}`}><img src={workout.image} alt="" /><button aria-label={`Start ${workout.title}`} onClick={() => goTo('Workouts')}><Play size={15} fill="currentColor" /></button></div><div className="workout-details"><span className="workout-tag">{workout.tag}</span><h4>{workout.title}</h4><p>{workout.meta}</p></div><button className="item-arrow" aria-label={`Open ${workout.title}`} onClick={() => goTo('Workouts')}><ArrowRight size={17} /></button></article>)}</div>
             </section>
-            <section className="panel ai-panel"><div className="ai-glow" /><div className="panel-heading"><div><p className="section-kicker">YOUR PERSONAL GUIDE</p><h3>Ask your AI coach</h3></div><div className="ai-spark"><Sparkles size={17} /></div></div><p className="ai-copy">Get a little more clarity on your next step. Your coach knows your goals and is here to help.</p><div className="coach-prompt"><Search size={16} /><span>What do you want to work on?</span><ArrowRight size={16} /></div><div className="suggestion-row"><button>Better sleep</button><button>Meal ideas</button><button>Motivation</button></div></section>
+            <section className="panel ai-panel"><div className="ai-glow" /><div className="panel-heading"><div><p className="section-kicker">YOUR PERSONAL GUIDE</p><h3>Ask your AI coach</h3></div><div className="ai-spark"><Sparkles size={17} /></div></div><p className="ai-copy">Get a little more clarity on your next step. Your coach knows your goals and is here to help.</p><button type="button" className="coach-prompt" onClick={() => goTo('AI Hub')}><Search size={16} /><span>What do you want to work on?</span><ArrowRight size={16} /></button><div className="suggestion-row"><button onClick={() => goTo('AI Hub')}>Better sleep</button><button onClick={() => goTo('AI Hub')}>Meal ideas</button><button onClick={() => goTo('AI Hub')}>Motivation</button></div></section>
           </section>
           <footer className="footer"><span>FitMate <i>•</i> Your everyday wellness companion</span><span>Made for real life, one day at a time.</span></footer>
           {showCalendar && <div className="calendar-backdrop" role="presentation" onClick={() => setShowCalendar(false)}><section className="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-title" onClick={(event) => event.stopPropagation()}><div className="calendar-modal-header"><div><p className="section-kicker">YOUR SCHEDULE</p><h2 id="calendar-title">{calendarMonth}</h2></div><button className="calendar-close" aria-label="Close calendar" onClick={() => setShowCalendar(false)}>×</button></div><div className="calendar-weekdays">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <span key={day}>{day}</span>)}</div><div className="calendar-grid">{Array.from({ length: calendarStart }).map((_, index) => <span className="calendar-empty" key={`empty-${index}`} />)}{Array.from({ length: calendarDays }, (_, index) => { const day = index + 1; const isToday = day === calendarDate.getDate(); return <span className={`calendar-day ${isToday ? 'today' : ''}`} key={day}>{day}</span> })}</div><div className="calendar-today"><CalendarDays size={17} /><div><strong>Today, {calendarDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}</strong><span>Keep your workout, meals, and recovery goals in view.</span></div></div></section></div>}
-        </div> : activeNav === 'AI Hub' ? <AIHubView user={user} onUserUpdate={setUser} /> : activeNav === 'Collab Space' ? <CollabSpaceView /> : activeNav === 'Help Desk' ? <HelpDeskView /> : activeNav === 'Nutrition' ? <NutritionPage /> : activeNav === 'Workouts' ? <WorkoutsPage user={user} onUserUpdate={setUser} /> : activeNav === 'Progress' ? <ProgressPage /> : activeNav === 'Achievements' ? <AchievementsPage /> : activeNav === 'Services' ? <ServicesPage /> : activeNav === 'Settings' ? <SettingsPage user={user} onUserUpdate={setUser} /> : activeNav === 'Admin' || ['Admin Exercises', 'Admin Foods', 'Workout Plans', 'Announcements', 'Content'].includes(activeNav) ? <AdminManagementView view={activeNav} /> : <div className="page-wrap"><p className="empty-copy">Choose a FitMate page from the sidebar.</p></div>}
+        </div> : activeNav === 'AI Hub' ? <AIHubView user={user} onUserUpdate={setUser} /> : activeNav === 'Collab Space' ? <CollabSpaceView /> : activeNav === 'Help Desk' ? <HelpDeskView /> : activeNav === 'Nutrition' ? <NutritionPage /> : activeNav === 'Workouts' ? <WorkoutsPage user={user} onUserUpdate={setUser} /> : activeNav === 'Progress' ? <ProgressPage /> : activeNav === 'Achievements' ? <AchievementsPage /> : activeNav === 'Services' ? <ServicesPage /> : activeNav === 'Settings' ? <SettingsPage user={user} onUserUpdate={setUser} initialTab={settingsTab} /> : activeNav === 'Admin' ? <FeatureView view="Admin" /> : ['Admin Exercises', 'Admin Foods', 'Workout Plans', 'Announcements', 'Content'].includes(activeNav) ? <AdminManagementView view={activeNav} /> : <div className="page-wrap"><p className="empty-copy">Choose a FitMate page from the sidebar.</p></div>}
       </main>
     </div>
   )

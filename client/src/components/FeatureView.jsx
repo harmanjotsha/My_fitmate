@@ -136,7 +136,112 @@ export function OnboardingView({ user, onComplete, onBack }) {
 }
 
 function FeatureHeader({ eyebrow, title, description, action, actionLabel }) { return <div className="feature-header"><div><p className="section-kicker">{eyebrow}</p><h2>{title}</h2><p>{description}</p></div>{action && <button className="primary-button" onClick={action}><Plus size={16} /> {actionLabel}</button>}</div> }
-export function ProgressView() { const [range, setRange] = useState(7); const [data, setData] = useState(null); const [error, setError] = useState(''); useEffect(() => { setData(null); api.progressSummary(range).then(setData).catch((requestError) => setError(requestError.message)) }, [range]); return <section className="feature-page"><FeatureHeader eyebrow="YOUR JOURNEY" title="Progress" description="Look for patterns and consistency across movement, meals, water, and rest." /><div className="range-tabs">{[7, 30, 90].map((value) => <button className={range === value ? 'active' : ''} key={value} onClick={() => setRange(value)}>{value} days</button>)}</div>{error && <div className="error-banner">{error}</div>}{!data ? <div className="loading-state"><LoaderCircle className="spin" /> Loading trends...</div> : <><div className="admin-stats"><article className="admin-stat"><span>Workouts</span><strong>{data.totals.completedWorkouts}</strong><small>completed</small></article><article className="admin-stat"><span>Active minutes</span><strong>{data.totals.activeMinutes}</strong><small>total</small></article><article className="admin-stat"><span>Meals logged</span><strong>{data.totals.meals}</strong><small>entries</small></article><article className="admin-stat"><span>Average sleep</span><strong>{data.totals.averageSleep}</strong><small>hours</small></article></div><div className="feature-list">{data.trends.sleep.map((item) => <article className="feature-item" key={item.id}><div className="feature-item-copy"><strong>{item.date} · {item.totalHours} hours</strong><span>Sleep quality: {item.quality}</span></div><div className="progress-track"><i style={{ width: `${Math.min(100, item.totalHours / 8 * 100)}%` }} /></div></article>)}</div></>}</section> }
+export function ProgressView() {
+  const [range, setRange] = useState(7)
+  const [data, setData] = useState(null)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({})
+
+  useEffect(() => {
+    setData(null)
+    setError('')
+    api.progressSummary(range).then(setData).catch((requestError) => setError(requestError.message))
+  }, [range])
+
+  const save = async (event) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    try {
+      await api.addProgress(form)
+      setData(await api.progressSummary(range))
+      setForm({})
+      setShowForm(false)
+      setMessage('Progress saved successfully.')
+    } catch (saveError) {
+      setError(saveError.message)
+    }
+  }
+
+  return (
+    <section className="feature-page">
+      <FeatureHeader
+        eyebrow="YOUR JOURNEY"
+        title="Progress"
+        description="Look for patterns and consistency across movement, meals, water, and rest."
+        action={() => setShowForm(true)}
+        actionLabel="Log activity"
+      />
+      <div className="range-tabs">
+        {[7, 30, 90].map((value) => (
+          <button
+            className={range === value ? 'active' : ''}
+            key={value}
+            onClick={() => setRange(value)}
+          >
+            {value} days
+          </button>
+        ))}
+      </div>
+      {showForm && (
+        <Form
+          view="Progress"
+          form={form}
+          setForm={setForm}
+          onSubmit={save}
+          onClose={() => setShowForm(false)}
+        />
+      )}
+      {message && <div className="success-banner">{message}</div>}
+      {error && <div className="error-banner">{error}</div>}
+      {!data ? (
+        <div className="loading-state">
+          <LoaderCircle className="spin" /> Loading trends...
+        </div>
+      ) : (
+        <>
+          <div className="admin-stats">
+            <article className="admin-stat">
+              <span>Workouts</span>
+              <strong>{data.totals.completedWorkouts}</strong>
+              <small>completed</small>
+            </article>
+            <article className="admin-stat">
+              <span>Active minutes</span>
+              <strong>{data.totals.activeMinutes}</strong>
+              <small>total</small>
+            </article>
+            <article className="admin-stat">
+              <span>Meals logged</span>
+              <strong>{data.totals.meals}</strong>
+              <small>entries</small>
+            </article>
+            <article className="admin-stat">
+              <span>Average sleep</span>
+              <strong>{data.totals.averageSleep}</strong>
+              <small>hours</small>
+            </article>
+          </div>
+          <div className="feature-list">
+            {data.trends.sleep.map((item) => (
+              <article className="feature-item" key={item.id}>
+                <div className="feature-item-copy">
+                  <strong>{item.date} · {item.totalHours} hours</strong>
+                  <span>Sleep quality: {item.quality}</span>
+                </div>
+                <div className="progress-track">
+                  <i style={{ width: `${Math.min(100, item.totalHours / 8 * 100)}%` }} />
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
 function FeatureItem({ item, view, onComplete }) { const title = item.title || item.name || item.items?.join(', ') || 'Progress entry'; return <article className="feature-item"><div className="feature-item-icon">{view === 'Nutrition' ? <Utensils size={18} /> : view === 'Progress' ? <Sparkles size={18} /> : <Dumbbell size={18} />}</div><div className="feature-item-copy"><strong>{title}</strong><span>{item.date || item.category || 'Today'} {item.durationMinutes ? `· ${item.durationMinutes} min` : ''} {item.estimatedCalories ? `· ${item.estimatedCalories} kcal approx.` : ''}</span></div>{view === 'My workouts' ? <button className={`complete-button ${item.completed ? 'completed' : ''}`} onClick={onComplete}>{item.completed ? <Check size={15} /> : 'Mark complete'}</button> : <ChevronRight size={18} className="feature-arrow" />}</article> }
 function Form({ view, form, setForm, onSubmit, onClose }) { const update = (key, value) => setForm((current) => ({ ...current, [key]: value })); return <form className="entry-form" onSubmit={onSubmit}><div className="form-title"><strong>Add {view.toLowerCase()}</strong><button type="button" onClick={onClose}>Cancel</button></div>{view === 'Nutrition' && <><input required placeholder="Foods, separated by commas" value={form.items || ''} onChange={(event) => update('items', event.target.value)} /><input required type="number" placeholder="Approximate calories" value={form.calories || ''} onChange={(event) => update('calories', event.target.value)} /></>}{view === 'My workouts' && <><input required placeholder="Workout name" value={form.title || ''} onChange={(event) => update('title', event.target.value)} /><input placeholder="Exercises, separated by commas" value={form.exercises || ''} onChange={(event) => update('exercises', event.target.value)} /><input required type="number" placeholder="Duration in minutes" value={form.duration || ''} onChange={(event) => update('duration', event.target.value)} /></>}{view === 'Progress' && <div className="form-grid"><input required type="number" step="0.1" placeholder="Weight (kg)" value={form.weight || ''} onChange={(event) => update('weight', event.target.value)} /><input type="number" placeholder="Steps" value={form.steps || ''} onChange={(event) => update('steps', event.target.value)} /><input type="number" placeholder="Water glasses" value={form.waterGlasses || ''} onChange={(event) => update('waterGlasses', event.target.value)} /><input type="number" step="0.1" placeholder="Sleep hours" value={form.sleepHours || ''} onChange={(event) => update('sleepHours', event.target.value)} /></div>}<button className="primary-button" type="submit"><Check size={16} /> Save entry</button></form> }
 export function ProfileView({ user, onUserUpdate }) { const [form, setForm] = useState(user || {}); const [saved, setSaved] = useState(false); const submit = async (event) => { event.preventDefault(); const result = await api.updateProfile(form); onUserUpdate(result.user); setSaved(true) }; return <section className="feature-page"><FeatureHeader eyebrow="YOUR DETAILS" title="Profile" description="Keep your baseline information current so recommendations stay relevant." /><form className="profile-form" onSubmit={submit}><label>Name<input value={form.name || ''} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label><label>Fitness goal<input value={form.fitnessGoal || ''} onChange={(event) => setForm({ ...form, fitnessGoal: event.target.value })} /></label><label>Diet preference<input value={form.dietPreference || ''} onChange={(event) => setForm({ ...form, dietPreference: event.target.value })} /></label><label>Experience<select value={form.exerciseExperience || 'Beginner'} onChange={(event) => setForm({ ...form, exerciseExperience: event.target.value })}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><button className="primary-button" type="submit"><Check size={16} /> Save profile</button>{saved && <span className="saved-note">Profile updated</span>}</form></section> }

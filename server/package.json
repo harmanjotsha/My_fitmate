@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch server.js",
-    "start": "node start.js"
+    "start": "node start.js",
+    "start:prod": "node server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

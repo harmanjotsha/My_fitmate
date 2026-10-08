@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import fitImageOne from '../fit 1.jpg'
 import fitImageTwo from '../fit 2.jpg'
 import fitImageThree from '../fit 3 transparent.png'
+import pilatesImage from '../pila.jpg'
+import recoveryImage from '../me.jpg'
 
 const highlights = [
   { icon: HeartPulse, title: 'Move with intention', text: 'Workouts that fit your energy, experience, and real schedule.' },
@@ -16,6 +18,10 @@ const programs = [
   { title: 'Weight management', text: 'Create steady habits without extreme routines.', image: fitImageTwo },
   { title: 'Cardio and HIIT', text: 'Move with energy through short, adaptable workouts.', image: fitImageThree },
   { title: 'Yoga and flexibility', text: 'Improve mobility, balance, and recovery time.', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=720&q=85' },
+  { title: 'Beginner movement', text: 'Start with approachable sessions that build confidence and consistency.', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=720&q=85' },
+  { title: 'Pilates and core', text: 'Build balance and core strength with controlled, low-impact movement.', image: pilatesImage },
+  { title: 'Recovery and mobility', text: 'Support flexibility with gentle mobility and recovery sessions.', image: recoveryImage },
+  { title: 'At-home workouts', text: 'Keep moving with simple sessions that need little or no equipment.', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=720&q=85' },
 ]
 
 const testimonials = [
@@ -73,7 +79,7 @@ export default function LandingView({ onStart }) {
 
       <section className="landing-trust"><span>YOUR WELLNESS, ALL IN ONE PLACE</span><i /><span>MOVE · NOURISH · REST · GROW</span><i /><span>DESIGNED FOR YOUR EVERYDAY</span></section>
 
-      <motion.section className="programs-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} variants={stagger}><div className="landing-section-heading"><p className="landing-eyebrow">FITNESS THAT FITS YOU</p><h2>Find the right program for you.</h2><p>Choose a starting point that matches your goals, energy, and experience.</p></div><div className="program-grid">{programs.map((program) => <motion.article className="program-card" variants={reveal} key={program.title}><img className={program.title === 'Cardio and HIIT' ? 'program-image-contain' : ''} src={program.image} alt={program.title} /><div><span>FITMATE PROGRAM</span><h3>{program.title}</h3><p>{program.text}</p><button onClick={() => onStart('register')}>Explore program <ArrowRight size={14} /></button></div></motion.article>)}</div></motion.section>
+      <motion.section className="programs-section" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} variants={stagger}><motion.div className="landing-section-heading" variants={reveal}><p className="landing-eyebrow">FITNESS THAT FITS YOU</p><h2>Find the right program for you.</h2><p>Choose a starting point that matches your goals, energy, and experience.</p></motion.div><div className="program-carousel" aria-label="Fitness programs"><div className="program-track">{[0, 1].map((copyIndex) => <div className="program-group" aria-hidden={copyIndex === 1} key={copyIndex}>{programs.map((program) => <motion.article className="program-card" variants={reveal} key={`${copyIndex}-${program.title}`}><div className="program-image-slot" aria-hidden={!program.image}>{program.image && <img className={`${program.title === 'Cardio and HIIT' ? 'program-image-contain ' : ''}${program.title === 'Recovery and mobility' ? 'program-image-recovery' : ''}`} src={program.image} alt={program.title} />}</div><div><span>FITMATE PROGRAM</span><h3>{program.title}</h3><p>{program.text}</p><button tabIndex={copyIndex === 1 ? -1 : undefined} onClick={() => onStart('register')}>Explore program <ArrowRight size={14} /></button></div></motion.article>)}</div>)}</div></div></motion.section>
       <TypewriterThought />
 
       <motion.section className="landing-features" id="features" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.16 }} variants={stagger}><motion.div className="landing-section-heading" variants={reveal}><p className="landing-eyebrow">A BETTER WAY TO BEGIN</p><h2>Take care of the whole you.</h2><p>Not a before-and-after story. A toolkit for feeling more supported in the life you already have.</p></motion.div><div className="highlight-grid">{highlights.map(({ icon: Icon, title, text }) => <motion.article className="highlight-card" variants={reveal} key={title}><div className="highlight-icon"><Icon size={19} /></div><h3>{title}</h3><p>{text}</p><button onClick={() => onStart('register')}>Explore FitMate <ChevronRight size={15} /></button></motion.article>)}</div></motion.section>

@@ -28,8 +28,8 @@ export function AchievementsPage() {
   return <section className="consolidated-page"><header className="consolidated-header"><p className="section-kicker">CELEBRATE CONSISTENCY</p><h2>Achievements</h2><p>Small wins, shared goals, and progress you can feel proud of.</p></header><Tabs active={tab} onChange={setTab} tabs={[{ id: 'badges', label: 'Badges & XP', icon: Trophy }, { id: 'challenges', label: 'Challenges', icon: Activity }]} />{tab === 'badges' ? <AchievementsView /> : <ChallengesView />}</section>
 }
 
-export function SettingsPage({ user, onUserUpdate }) {
-  const [tab, setTab] = useState('profile')
+export function SettingsPage({ user, onUserUpdate, initialTab = 'profile' }) {
+  const [tab, setTab] = useState(initialTab)
   return <section className="consolidated-page"><header className="consolidated-header"><p className="section-kicker">ACCOUNT</p><h2>Settings</h2><p>Manage your profile, notifications, and account preferences.</p></header><Tabs active={tab} onChange={setTab} tabs={[{ id: 'profile', label: 'Profile', icon: UserRound }, { id: 'notifications', label: 'Notifications', icon: Bell }, { id: 'account', label: 'Account', icon: Settings }]} />{tab === 'profile' ? <ProfileView user={user} onUserUpdate={onUserUpdate} /> : tab === 'notifications' ? <NotificationsView /> : <SettingsView />}</section>
 }
 
