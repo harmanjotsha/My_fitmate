@@ -18,6 +18,7 @@ import { validateProductionConfig } from './config.js'
 const app = express()
 const port = Number(process.env.PORT || 4000)
 const isProduction = process.env.NODE_ENV === 'production'
+const serveClient = !isProduction || process.env.SERVE_CLIENT !== 'false'
 const serverDirectory = dirname(fileURLToPath(import.meta.url))
 const clientDist = resolve(serverDirectory, '../client/dist')
 const clientOrigin = process.env.CLIENT_URL || process.env.RENDER_EXTERNAL_URL
@@ -77,7 +78,7 @@ app.use('/api', apiRoutes)
 
 app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found' }))
 
-if (isProduction) {
+if (serveClient) {
   app.use(express.static(clientDist, { index: false, maxAge: '1y', immutable: true }))
   app.get('*', (_req, res) => res.sendFile(resolve(clientDist, 'index.html')))
 }
@@ -90,7 +91,7 @@ async function startServer() {
   try {
     validateProductionConfig()
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be an integer between 1 and 65535')
-    if (isProduction && !existsSync(resolve(clientDist, 'index.html'))) {
+    if (serveClient && isProduction && !existsSync(resolve(clientDist, 'index.html'))) {
       throw new Error('Production client build is missing. Run npm run build before starting the server.')
     }
     await connectPersistence()

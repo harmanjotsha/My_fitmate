@@ -54,13 +54,18 @@ existing per-entity MongoDB models (or another transactional database), add dura
 integration tests/backups, and complete a privacy/security review. The checks in
 `npm test` are focused configuration and rate-limit tests, not a full end-to-end suite.
 
-### Deploying on Render
+### Deploying on Render (separate frontend and backend)
 
-The repository includes a Render Blueprint at [`render.yaml`](./render.yaml). To
-deploy it, create a Blueprint in Render, connect `harmanjotsha/My_fitmate`, and
-select the `main` branch. Render reads the build, start, health-check, and
-non-secret environment settings from that file. The service uses the free plan;
-free web services can spin down after inactivity.
+The repository includes a Render Blueprint at [`render.yaml`](./render.yaml). It
+creates two services from the same `main` branch:
+
+- `fitmate-api` - Node Web Service for the Express API
+- `fitmate-frontend` - Static Site for the React/Vite frontend
+
+Create a Blueprint in Render, connect `harmanjotsha/My_fitmate`, and select the
+`main` branch. Render reads both services' build commands, publish path,
+start command, health check, and environment settings from that file. Free
+services can spin down after inactivity.
 
 Create a MongoDB Atlas cluster and database user before applying the Blueprint.
 Allow the Render service's outbound IP addresses in the Atlas network access
@@ -69,7 +74,7 @@ list, then provide the Atlas connection string when Render prompts for
 `mongodb+srv://<database-user>:<url-encoded-password>@<cluster-host>/fitmate?retryWrites=true&w=majority`.
 Keep credentials out of Git. The Blueprint generates `JWT_SECRET` for you.
 
-If configuring a Web Service manually instead, use:
+If configuring the backend Web Service manually instead, use:
 
 | Render field | Value |
 | --- | --- |
@@ -77,7 +82,7 @@ If configuring a Web Service manually instead, use:
 | Branch | `main` |
 | Root Directory | Leave blank |
 | Runtime | `Node` |
-| Build Command | `npm ci --prefix server && npm ci --prefix client && npm run build --prefix client` |
+| Build Command | `npm ci --prefix server` |
 | Start Command | `npm run start:prod --prefix server` |
 | Health Check Path | `/api/health` |
 | Plan | `Free` (or choose a paid plan to avoid free-instance spin-down) |
@@ -88,15 +93,38 @@ Set these environment variables in the service:
 | --- | --- |
 | `NODE_ENV` | `production` |
 | `TRUST_PROXY` | `true` |
+| `SERVE_CLIENT` | `false` |
 | `JWT_SECRET` | Generate a unique secret with `openssl rand -hex 32` (keep it private) |
 | `MONGO_URL` | Your MongoDB Atlas connection string |
-| `CLIENT_URL` | Leave unset to use Render's generated service URL. If set, use the exact HTTPS origin with no trailing slash. |
+| `CLIENT_URL` | The exact frontend Static Site URL, for example `https://fitmate-frontend.onrender.com` |
 
 `PORT` is supplied by Render and should not be set manually. `GROQ_API_KEY`
 (optionally `GROQ_API_TWO`) enables AI features; the `CLOUDINARY_*` credentials
 enable uploads. These are optional and can be added later in Render's
 Environment settings. For a custom domain, update `CLIENT_URL` to that domain's
 exact HTTPS origin if cross-origin browser access is needed.
+
+For the frontend Static Site, use:
+
+| Render field | Value |
+| --- | --- |
+| Repository | `https://github.com/harmanjotsha/My_fitmate.git` |
+| Branch | `main` |
+| Root Directory | Leave blank |
+| Build Command | `npm ci --prefix client && npm run build --prefix client` |
+| Publish Directory | `client/dist` |
+| Plan | `Free` |
+
+Add this frontend build environment variable:
+
+| Key | Value |
+| --- | --- |
+| `VITE_API_URL` | `https://fitmate-api.onrender.com/api` |
+
+After both services are created, replace the example hostnames above with the
+actual Render URLs if Render adds a suffix. `VITE_API_URL` is a build-time
+variable, so trigger a new frontend deploy after changing it. `CLIENT_URL` must
+match the frontend URL exactly, without a trailing slash.
 
 ## Build phases
 

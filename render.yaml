@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: fitmate
+    name: fitmate-api
     runtime: node
     plan: free
-    buildCommand: npm ci --prefix server && npm ci --prefix client && npm run build --prefix client
+    buildCommand: npm ci --prefix server
     startCommand: npm run start:prod --prefix server
     healthCheckPath: /api/health
     envVars:
@@ -11,7 +11,30 @@ services:
         value: production
       - key: TRUST_PROXY
         value: "true"
+      - key: SERVE_CLIENT
+        value: "false"
       - key: JWT_SECRET
         generateValue: true
       - key: MONGO_URL
         sync: false
+      - key: CLIENT_URL
+        value: https://fitmate-frontend.onrender.com
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_API_TWO
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  - type: static_site
+    name: fitmate-frontend
+    plan: free
+    buildCommand: npm ci --prefix client && npm run build --prefix client
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://fitmate-api.onrender.com/api
