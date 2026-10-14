@@ -33,7 +33,6 @@ services:
   - type: web
     name: fitmate-frontend
     runtime: static
-    plan: free
     buildCommand: npm ci --prefix client && npm run build --prefix client
     staticPublishPath: client/dist
     envVars:
