@@ -30,11 +30,16 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
 
-  - type: static_site
+  - type: web
     name: fitmate-frontend
+    runtime: static
     plan: free
     buildCommand: npm ci --prefix client && npm run build --prefix client
     staticPublishPath: client/dist
     envVars:
       - key: VITE_API_URL
         value: https://fitmate-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
