@@ -41,6 +41,15 @@ app.use((_req, res, next) => {
 app.use(express.json({ limit: '2mb' }))
 app.use('/api', rateLimit({ windowMs: 60_000, max: 180, scope: 'api' }))
 
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'fitmate-api',
+    message: 'FitMate API is running',
+    health: '/api/health'
+  })
+})
+
 app.get('/api/health', (_req, res) => {
   const persistence = getPersistenceStatus()
   const ready = !isProduction || persistence === 'mongodb'
