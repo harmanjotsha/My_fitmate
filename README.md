@@ -54,36 +54,27 @@ existing per-entity MongoDB models (or another transactional database), add dura
 integration tests/backups, and complete a privacy/security review. The checks in
 `npm test` are focused configuration and rate-limit tests, not a full end-to-end suite.
 
-### Deploying on Render (separate frontend and backend)
+### Deploying on Render (manual separate services)
 
-The repository includes a Render Blueprint at [`render.yaml`](./render.yaml). It
-creates two services from the same `main` branch:
+Deploy the backend and frontend as two separate Render services. Do not use the
+Blueprint for this flow. Free services can spin down after inactivity.
 
-- `fitmate-api` - Node Web Service for the Express API
-- `fitmate-frontend` - Static Site for the React/Vite frontend
-
-Create a Blueprint in Render, connect `harmanjotsha/My_fitmate`, and select the
-`main` branch. Render reads both services' build commands, publish path,
-start command, health check, and environment settings from that file. Free
-services can spin down after inactivity.
-
-Create a MongoDB Atlas cluster and database user before applying the Blueprint.
-Allow the Render service's outbound IP addresses in the Atlas network access
-list, then provide the Atlas connection string when Render prompts for
-`MONGO_URL`. Use a URI such as
+Create a MongoDB Atlas cluster and database user first. In Atlas, allow Render
+to connect through Network Access, then use a URI such as
 `mongodb+srv://<database-user>:<url-encoded-password>@<cluster-host>/fitmate?retryWrites=true&w=majority`.
-Keep credentials out of Git. The Blueprint generates `JWT_SECRET` for you.
+The database user's password is not the same as the Atlas account password.
+Keep credentials out of Git.
 
-If configuring the backend Web Service manually instead, use:
+For the backend Web Service, use:
 
 | Render field | Value |
 | --- | --- |
 | Repository | `https://github.com/harmanjotsha/My_fitmate.git` |
 | Branch | `main` |
-| Root Directory | Leave blank |
+| Root Directory | `server` |
 | Runtime | `Node` |
-| Build Command | `npm ci --prefix server` |
-| Start Command | `npm run start:prod --prefix server` |
+| Build Command | `npm ci` |
+| Start Command | `npm run start:prod` |
 | Health Check Path | `/api/health` |
 | Plan | `Free` (or choose a paid plan to avoid free-instance spin-down) |
 
@@ -110,9 +101,9 @@ For the frontend Static Site, use:
 | --- | --- |
 | Repository | `https://github.com/harmanjotsha/My_fitmate.git` |
 | Branch | `main` |
-| Root Directory | Leave blank |
-| Build Command | `npm ci --prefix client && npm run build --prefix client` |
-| Publish Directory | `client/dist` |
+| Root Directory | `client` |
+| Build Command | `npm ci && npm run build` |
+| Publish Directory | `dist` |
 | Plan | `Free` |
 
 Add this frontend build environment variable:
@@ -122,9 +113,11 @@ Add this frontend build environment variable:
 | `VITE_API_URL` | `https://fitmate-api.onrender.com/api` |
 
 After both services are created, replace the example hostnames above with the
-actual Render URLs if Render adds a suffix. `VITE_API_URL` is a build-time
-variable, so trigger a new frontend deploy after changing it. `CLIENT_URL` must
-match the frontend URL exactly, without a trailing slash.
+actual Render URLs if Render adds a suffix. `VITE_API_URL` is a build-time variable, so trigger a new frontend deploy after
+changing it. `CLIENT_URL` must match the frontend URL exactly, without a
+trailing slash. Add a Static Site rewrite from `/*` to `/index.html` so
+client-side routes work on refresh. The backend root URL is not the frontend;
+use `/api/health` to test the API.
 
 ## Build phases
 
